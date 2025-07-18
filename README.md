@@ -10,7 +10,7 @@ A minimal React + Supabase web app for anonymous one-liner thoughts.
 - Upvote posts
 - No login required
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - React
 - TailwindCSS
