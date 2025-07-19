@@ -1,3 +1,5 @@
+// App.js (Updated Version)
+
 import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
 import { FaThumbsUp, FaSearch, FaPaperPlane, FaHashtag } from 'react-icons/fa';
@@ -22,14 +24,13 @@ function App() {
     }
   }, []);
 
-  //Fetch Posts with Upvote Counts
+  // ✅ Fetch Posts with Upvote Counts & Sort
   const fetchPostsWithVotes = async () => {
     setLoading(true);
 
     const { data: postsData, error: postErr } = await supabase
       .from('oneline_posts')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select('*');
 
     const { data: votesData, error: voteErr } = await supabase
       .from('oneline_votes')
@@ -41,7 +42,6 @@ function App() {
       return;
     }
 
-    //Count Upvotes
     const voteMap = {};
     (votesData || []).forEach(({ post_id }) => {
       voteMap[post_id] = (voteMap[post_id] || 0) + 1;
@@ -52,15 +52,17 @@ function App() {
       upvotes: voteMap[post.id] || 0,
     }));
 
+    postsWithVotes.sort((a, b) => b.upvotes - a.upvotes);
     setPosts(postsWithVotes);
     setLoading(false);
   };
 
+  // On mount
   useEffect(() => {
     fetchPostsWithVotes();
   }, []);
 
-  //Handle New Post
+  // Handle New Post
   const handlePost = async (e) => {
     e.preventDefault();
     if (!content.trim()) return;
@@ -86,7 +88,7 @@ function App() {
     await fetchPostsWithVotes();
   };
 
-  //Handle Upvote
+  // Handle Upvote
   const handleUpvote = async (e, postId) => {
     e.preventDefault();
     if (!userId) return;
@@ -106,34 +108,39 @@ function App() {
     await fetchPostsWithVotes();
   };
 
-  //Filtered Posts by Tag
+  // Filtered Posts by Tag
   const filtered = posts.filter((post) =>
     post.tags?.some((tag) => tag.includes(search.toLowerCase()))
   );
 
- return (
-    <div className="relative min-h-screen w-full overflow-x-hidden" style={{ fontFamily: "'Gabarito', sans-serif" }}>
-      {/* Fixed Background Pattern */}
-      <div 
+  return (
+    <div
+      className="relative min-h-screen w-full overflow-x-hidden"
+      style={{ fontFamily: "'Gabarito', sans-serif" }}
+    >
+      {/* Background Pattern */}
+      <div
         className="fixed inset-0 -z-10"
         style={{
           backgroundColor: '#DFDBE5',
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.4'%3E%3Cpath d='M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           backgroundRepeat: 'repeat',
           backgroundAttachment: 'fixed',
-          backgroundSize: 'auto'
+          backgroundSize: 'auto',
         }}
       />
 
-      {/* Fixed Header */}
+      {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-10 backdrop-blur-lg bg-white/30 border-b border-white/20 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 w-full">
-          {/* Title with spacing */}
-          <div className="text-center text-6xl font-extrabold text-[#231942] pt-6 pb-4" style={{ fontFamily: "'Audiowide', cursive" }}>
+          <div
+            className="text-center text-6xl font-extrabold text-[#231942] pt-6 pb-4"
+            style={{ fontFamily: '"Josefin Sans", sans-serif' }}
+          >
             OneLine
           </div>
-          
-          {/* Inputs with spacing */}
+
+          {/* Input Fields */}
           <div className="flex flex-col md:flex-row gap-6 pb-6 items-center w-full">
             <div className="w-full relative">
               <FaSearch className="absolute left-3 top-3 text-[#5e548e]/80" />
@@ -143,7 +150,6 @@ function App() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 rounded-full bg-white/80 border border-[#5e548e]/30 focus:outline-none focus:ring-2 focus:ring-[#9f86c0] text-[#231942] shadow"
-                style={{ fontFamily: "'Gabarito', sans-serif" }}
               />
             </div>
             <form onSubmit={handlePost} className="w-full relative">
@@ -154,7 +160,6 @@ function App() {
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 className="w-full pl-10 pr-12 py-3 rounded-full bg-white/80 border border-[#5e548e]/30 focus:outline-none focus:ring-2 focus:ring-[#9f86c0] text-[#231942] shadow"
-                style={{ fontFamily: "'Gabarito', sans-serif" }}
               />
               <button
                 type="submit"
@@ -167,7 +172,7 @@ function App() {
         </div>
       </div>
 
-      {/* Posts Grid - Full width */}
+      {/* Grid Section */}
       <div className="pt-60 pb-8 w-full px-4">
         <div className="w-full max-w-none mx-0">
           {loading ? (
@@ -195,7 +200,8 @@ function App() {
                           key={tag}
                           className="bg-[#be95c4]/30 px-2 py-1 rounded-full flex items-center"
                         >
-                          <FaHashtag className="mr-1" />{tag}
+                          <FaHashtag className="mr-1" />
+                          {tag}
                         </span>
                       ))}
                     </div>
@@ -213,10 +219,14 @@ function App() {
               ))}
             </div>
           )}
+          <footer className="text-center text-sm text-gray-500 mt-12 border-t py-6">
+            made for fun — built with React 
+          </footer>
         </div>
       </div>
     </div>
   );
+  
 }
 
 export default App;
